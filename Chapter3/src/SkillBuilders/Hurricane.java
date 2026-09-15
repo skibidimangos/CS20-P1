@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import java.util.HashMap;
 
-public class HurricaneClassifier {
+public class Hurricane {
 	
 	static void print(String input) {
 		System.out.println(input);
@@ -30,7 +30,7 @@ public class HurricaneClassifier {
 		while (true) {
 			try {
 				
-				int CategoryNumber = userinput.nextInt();
+				int CategoryNumber = Integer.parseInt(userinput.next());
 				
 				if (1 <= CategoryNumber && CategoryNumber <= 5) { // Checks if the input is between 1 and 5
 					
@@ -42,7 +42,7 @@ public class HurricaneClassifier {
 				}
 				
 			} catch (NumberFormatException e) {
-			    System.out.println("Invalid input, must be an integer between 1 and 5.");
+			   print("Invalid input, must be an integer between 1 and 5.");
 			}
 		}
 		

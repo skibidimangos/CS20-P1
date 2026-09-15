@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 import java.text.NumberFormat;
 
-public class GradeAverage {
+public class GradeAvg {
 
 	public static void main(String[] args)
 	{
