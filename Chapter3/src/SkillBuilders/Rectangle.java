@@ -4,18 +4,9 @@ import java.util.Scanner;
 
 public class Rectangle {
 	
-	static void RequestPrint(String Text) {
-		
-		System.out.println(Text);
-		System.out.println();
-		
-	}
-	
 	public static void main(String[] args)
 	{
-		
-
-				
+	
 		//Assignment format: Type, Identifier, Optional[Value]
 		
 		int len;
@@ -29,17 +20,17 @@ public class Rectangle {
 		
 		// Requesting Input
 		
-		RequestPrint("Enter a Width:");
+		System.out.println("Enter a Width:");
 		
 		width = userinput.nextInt();
 		
-		RequestPrint("Enter a Length");
+		System.out.println("Enter a Length");
 		
 		len = userinput.nextInt();
 		
 		// Format String %[argument_index$][flags][width][.precision]conversion
 		
-		String Format = "A rectangle with a width of %d and a length of %d has an area of %d".formatted(width, len, width * len);
+		String Format = "A rectangle with a width of %d and a length of %d has a circumference of %d".formatted(width, len, (2 * width) + (2 * len));
 		
 		System.out.println(Format);
 		
