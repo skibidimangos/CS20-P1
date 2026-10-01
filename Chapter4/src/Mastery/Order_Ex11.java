@@ -1,7 +1,5 @@
 package Mastery;
 
-import java.util.HashMap;
-
 import java.util.Scanner;
 
 import java.util.ArrayList;
@@ -172,7 +170,7 @@ public class Order_Ex11 {
 			
 			double Value = Price * Quantity;
 			
-			System.out.println(Quantity + " " + Name +"(s) cost: $" + Value);
+			System.out.printf(Quantity + " " + Name + "(s) : $%.2f%n", Value);  // Decimal formatting required for rounding errors
 			
 			PreTotal += Value;
 
@@ -180,19 +178,25 @@ public class Order_Ex11 {
 		
 		Double FinalTotal = PreTotal + (PreTotal * Tax);
 		
-		System.out.println("Total Before Tax: " + PreTotal);
+		System.out.printf("Total before tax: $%.2f%n", PreTotal);
 		
-		System.out.println("Final Total: " +  FinalTotal);
+		System.out.printf("Final Total: $%.2f%n", FinalTotal);
+		
+
 		
 		if (Tendered > 0) {
+			
+			System.out.println("Amount Tendered: $" + Tendered);
 			
 			double Change = Tendered - FinalTotal;
 			
 			if (Change < 0) {
-				System.out.println("Customer needs to provide " + (Change * -1) + "$ more");
-			}
+				System.out.printf("Remainder Owed: $%.2f%n", (Change * - 1));
+			} else {
+				
+				System.out.printf("Change: $%.2f%n", Change);;
 			
-			System.out.println("Change: " +  Change);
+			}
 			
 		}
 		
