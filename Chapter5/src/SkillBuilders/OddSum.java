@@ -2,7 +2,7 @@ package SkillBuilders;
 
 import java.util.Scanner;
 
-public class NumbersSum {
+public class OddSum {
 	
 	static int GetInput() {
 		
@@ -40,6 +40,8 @@ public class NumbersSum {
 		
 		for (int i = 1; i <= Length ; i++) {
 			
+			if ((i % 2) != 0) {
+			
 				System.out.println(i);
 				
 				Sum += i;
@@ -47,7 +49,7 @@ public class NumbersSum {
 				System.out.println("Sum:" + Sum);
 				
 				continue;
-
+			}
 		}
 	}
 }
