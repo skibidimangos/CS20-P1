@@ -4,7 +4,10 @@ import java.util.Random;
 
 import java.util.Scanner;
 
+import java.util.ArrayList;
+
 import java.util.HashMap;
+
 public class MathTutor {
 	
 	static Random random = new Random();
@@ -15,23 +18,23 @@ public class MathTutor {
 		
 	}
 	
-	static String GenerateOperation() {
+	static void InsertValues(HashMap<String,String> hm) {
 		
-		String[] OperationList = {"Add", "Sub", "Mul", "Div"};
+		hm.put("Addition", "+");
 		
-		return OperationList[random.nextInt(0, OperationList.length)]; // Choose Random Operation
+		hm.put("Subtraction", "-");
+		
+		hm.put("Multiplication", "*");
+		
+		hm.put("Division", "/");
+		
 	}
 	
-	static void AddValues(HashMap<String, String> hm) {
+	static String GenerateOperation() {
 		
-		hm.put("Add", "+");
+		String[] OperationList = {"Addition", "Subtraction", "Multiplication", "Division"};
 		
-		hm.put("Sub", "-");
-		
-		hm.put("Mul", "*");
-		
-		hm.put("Div", "/");
-		
+		return OperationList[random.nextInt(0, OperationList.length)]; // Choose Random Operation
 	}
 	
 	static Number CalculateAnswer(int[] Values, String Operation) {
@@ -41,25 +44,26 @@ public class MathTutor {
 		
 		int Value2 = Values[1];
 		
-		switch (Operation) {
+		switch(Operation) {
 		
-		case "Add":
-			
+		case "Addition":
+		
 			return Value1 + Value2;
 			
-		case "Sub":
-			
+		case "Subtraction":
+		
 			return Value1 - Value2;
 			
-		case "Mul":
-			
+		case "Multiplication":
+
 			return Value1 * Value2;
 			
-		case "Div":
-			
-			return Math.round(((double)Value1 / Value2) * 100) / 100;
+		case "Division":
+
+			return Math.round((double) Value1 / Value2 * 100) / 100.0;
 		
-		}
+			}
+
 		
 		return 0;
 	}
@@ -89,9 +93,9 @@ public class MathTutor {
 		
 		Scanner Userinput = new Scanner(System.in);
 		
-		HashMap<String,String> Nametosymbol = new HashMap<String,String>();
+		HashMap<String, String> SymbolMap = new HashMap<String,String>();
 		
-		AddValues(Nametosymbol);
+		InsertValues(SymbolMap);
 		
 		int Points = 0;
 		
@@ -103,11 +107,24 @@ public class MathTutor {
 			
 			int Value1 = GenerateNumber(0,10);
 			
-			int Value2 = GenerateNumber(1,10);
+			int Value2;
+			
+			switch (Operation) { // Can't divide by zero
+			
+			case "Division":
+			
+				Value2 = GenerateNumber(1,10);
+				
+				System.out.println("Answer to the nearest hundredth");
+			
+			default:
+			
+				Value2 = GenerateNumber(0,10);
+			}
 			
 			double AnswerKey = CalculateAnswer(new int[] {Value1, Value2}, Operation).doubleValue();
 			
-			System.out.println(Value1 + " " + Nametosymbol.get(Operation) + " " + Value2);
+			System.out.println(Value1 + " " + SymbolMap.get(Operation) + " " + Value2);
 			
 			double UserAnswer = GetInput(Userinput);
 			
