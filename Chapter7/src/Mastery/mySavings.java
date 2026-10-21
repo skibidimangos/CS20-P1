@@ -4,21 +4,35 @@ import java.lang.reflect.Field;
 
 import java.util.Scanner;
 
+import java.util.HashMap;
+
 public class mySavings {
 	
-	public class PiggyBank {
+	public static Scanner userInput = new Scanner(System.in);
+	
+	public static class PiggyBank {
 		
 		@SuppressWarnings("unused")
-		private int Pennies = 0;
+		private int pennies = 0;
 		
 		@SuppressWarnings("unused")
-		private int Nickels = 0;
+		private int nickels = 0;
 		
 		@SuppressWarnings("unused")
-		private int Dimes = 0;
+		private int dimes = 0;
 		
 		@SuppressWarnings("unused")
-		private int Quarters = 0;
+		private int quarters = 0;
+		
+		private static HashMap<String, Double> CoinValues = new HashMap<String,Double>();
+		
+		// Constructors
+		
+		public PiggyBank() {
+			
+			PiggyBank.initiateCoinValues();
+
+		}
 		
 		public PiggyBank(
 				int Pennies, 
@@ -26,36 +40,21 @@ public class mySavings {
 				int Dimes, 
 				int Quarters) {
 			
-			this.Pennies = Pennies;
+			this.pennies = Pennies;
 			
-			this.Nickels = Nickels;
+			this.nickels = Nickels;
 			
-			this.Dimes = Dimes;
+			this.dimes = Dimes;
 			
-			this.Quarters = Quarters;
+			this.quarters = Quarters;
+			
+			PiggyBank.initiateCoinValues();
 			
 		}
 		
 		// Instance methods
 		
 		// Access
-		
-		public int getCoins(String Type) {
-			
-		    try {
-		    	
-		        Field Coin = PiggyBank.class.getDeclaredField(Type);
-
-		        return Coin.getInt(this);
-		        
-
-		    } catch (NoSuchFieldException | IllegalAccessException e) {
-		    	
-		        return -1;
-		        
-		    }
-			
-		}
 		
 		public double getValue() {
 			
@@ -65,13 +64,21 @@ public class mySavings {
 			
 			for (Field Coin: Coins) {
 				
+				String CoinName = Coin.getName();
+				
+				if (PiggyBank.CoinValues.containsKey(CoinName) != true) {
+					
+					continue;
+					
+				}
+				
 				try {
 					
-					Value += Coin.getInt(this);
+					Value += Coin.getInt(this) *  PiggyBank.CoinValues.get(CoinName);
 					
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					
-					return -1.0;
+					print("ERROR: Can't access coin" + e);
 					
 				}
 				
@@ -81,61 +88,197 @@ public class mySavings {
 			
 		}
 		
+		public void checkStorage() {
+			
+			Field[] Coins = PiggyBank.class.getDeclaredFields();
+			
+			for (Field Coin: Coins) {
+				
+				String CoinName = Coin.getName();
+				
+				if (PiggyBank.CoinValues.containsKey(CoinName) != true) {
+					
+					continue;
+					
+				}
+				
+				try {
+					
+					print(CoinName + ":" + Coin.getInt(this));
+					
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					
+					print("ERROR: Can't access coin" + e);
+					
+				}
+				
+			}
+			
+		}
+		
 		// Modify
 		
-		public void addCoins(String Type, int Amount) {
+		public static void initiateCoinValues() {
+			CoinValues.put("pennies", 0.01);
 			
-		    try {
-		    	
-		        Field Coin = PiggyBank.class.getDeclaredField(Type);
-		        
-		        int Coins = Coin.getInt(this);
-		        
-		        Coin.setInt(this, Amount + Coins);
-		        
-		        print(Amount + " " + Type + " have been added to the piggy bank. There are now: " + Coins + " " + Type);
-		       
-
-		    } catch (NoSuchFieldException | IllegalAccessException e) {
-		    	
-		        print("Attribute not found.");
-		        
-		    }
+			CoinValues.put("nickels", 0.05);
+			
+			CoinValues.put("dimes", 0.10);
+			
+			CoinValues.put("quarters", 0.25);
+		}
+		
+		public void addCoins() {
+			
+			while (true) {
+				
+				print("Enter the coin you want to add. (Pennies, Nickels, Dimes, Quarters)");
+				
+				String input = mySavings.userInput.next();
+				
+				try {
+			
+			        Field Coin = PiggyBank.class.getDeclaredField(input.toLowerCase());
+			        
+			        int CoinsOwned = Coin.getInt(this);
+			        
+					print("How many coins would you like to enter?");
+					
+					input = mySavings.userInput.next();
+					
+					try {
+						
+						int Amount = Integer.parseInt(input);
+						
+						Coin.setInt(this, CoinsOwned + Amount);
+						
+						print(Amount + " " + Coin.getName() + " have been added to the piggy bank. There are now: " + Coin.getInt(this) + " " + Coin.getName());
+						
+						
+					} catch (NumberFormatException e) {
+						
+						print("Input must be an integer, try again." + e);
+						
+						continue;
+						
+					}
+					
+					
+					
+					
+				} catch (NoSuchFieldException | IllegalAccessException e) {
+			    	
+			        print("No such coin exists, try again." + e);
+			        
+			        continue;
+			        
+			    } 
+				
+				print("Do you want to continue adding coins? (Y/N)");
+				
+				input = mySavings.userInput.next();
+				
+				if (input.equalsIgnoreCase("N")) {
+					
+					return;
+					
+				}
+				
+				
+				
+			}
 
 			
 		}
 		
-		public void takeCoins(String Type, int Amount) {
+		public void takeCoins() {
 			
-		    try {
-		    	
-		        Field Coin = PiggyBank.class.getDeclaredField(Type);
-		        
-		        int Coins = Coin.getInt(this);
-		        
-		        if (Amount > Coins) {
-		        	
-		        	print("Can't take more coins than amount stored. (" + Amount + " > " + Coins + ")");
-		        	
-		        	return;
-		        	
-		        }
-		        
-		        Coin.setInt(this, Coins - Amount);
-		        
-		        print(Amount + " " + Type + " have been removed from the piggy bank. There are now: " + Coin.getInt(this) + " " + Type);
-		       
+			while (true) {
+				
+				print("Enter the coin you want to take. (Pennies, Nickels, Dimes, Quarters)");
+				
+				String input = mySavings.userInput.next();
+				
+				try {
+			
+			        Field Coin = PiggyBank.class.getDeclaredField(input.toLowerCase());
+			        
+			        int CoinsOwned = Coin.getInt(this);
+			        
+			        if (CoinsOwned == 0) {
+			        	
+			        	print("You don't have any " + Coin.getName() + ", please try again.");
+			        	
+			        	continue;
 
-		    } catch (NoSuchFieldException | IllegalAccessException e) {
-		    	
-		        print("Attribute not found.");
-		        
-		    }
+			        }
+			        
+					print("You have: " + CoinsOwned + " " + Coin.getName() + ", how many do you want tot ake?");
+					
+					input = mySavings.userInput.next();
+					
+					try {
+						
+						int Amount = Integer.parseInt(input);
+						
+						while (Amount > CoinsOwned) {
+							
+							print("You can't have more coins than you own, try again.");
+						
+							input = mySavings.userInput.next();
+							
+							try {
+								
+								Integer.parseInt(input);
+								
+							} catch (NumberFormatException e) {
+								
+								print("Input must be an integer, try again." + e);
+								
+							}
+							
+						}
+						
+						Coin.setInt(this, CoinsOwned - Amount);
+						
+						print(Amount + " " + Coin.getName() + " have been removed from the piggy bank. There are now: " + Coin.getInt(this) + " " + Coin.getName());
+						
+						
+					} catch (NumberFormatException e) {
+						
+						print("Input must be an integer, try again." + e);
+						
+						continue;
+						
+					}
+					
+					
+					
+					
+				} catch (NoSuchFieldException | IllegalAccessException e) {
+			    	
+			        print("No such coin exists, try again." + e);
+			        
+			        continue;
+			        
+			    } 
+				
+				print("Do you want to continue adding coins? (Y/N)");
+				
+				input = mySavings.userInput.next();
+				
+				if (input.equalsIgnoreCase("N")) {
+					
+					return;
+					
+				}
+				
+				
+				
+			}
 
 			
 		}
-		
-		
 	}
 
 	public static void print(String printStatement) {
@@ -149,15 +292,17 @@ public class mySavings {
 		print("1. Show Total");
 		print("2. Add Coins");
 		print("3. Take Coins");
+		print("4. Check Piggy Bank");
+		print("5. See Options Again");
 		print("0. Quit Program");
 		
 	}
 	
-	public static int getOption(Scanner Userinput) {
+	public static int getOption() {
 		
 		while (true) {
 			
-			String Input = Userinput.next();
+			String Input = userInput.next();
 			
 			try {
 				
@@ -174,19 +319,64 @@ public class mySavings {
 		
 	}
 	
-	public static void main(String Args[]) {
+	public static void callOption(int Option, PiggyBank myPiggyBank) {
 		
-		Scanner Userinput = new Scanner(System.in);
+		switch (Option) {
+		
+		case 1:
+			
+			print("$" + Double.toString(myPiggyBank.getValue()));
+			
+			return;
+			
+		case 2:
+			
+			myPiggyBank.addCoins();
+			
+			return;
+			
+		case 3:
+			
+			myPiggyBank.takeCoins();
+			
+			return;
+			
+		case 4:
+			
+			myPiggyBank.checkStorage();
+			
+			return;
+			
+		case 5:
+			
+			printOptions();
+			
+			return;
+		
+		case 0:
+			
+			userInput.close();
+			
+			System.exit(0);
+		
+		}
+		
+	}
+	
+	public static void main(String[] args) {
+		
+		PiggyBank myPiggyBank = new PiggyBank();
+		
+		printOptions();
 		
 		while (true) {
-		
-			printOptions();
-		
-			getOption(Userinput);
-		
+			
+			callOption(getOption(), myPiggyBank);
 		
 		}
 		
 	}
 	
 }
+	
+
