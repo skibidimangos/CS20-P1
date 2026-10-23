@@ -1,5 +1,8 @@
 package Mastery;
 
+import java.lang.reflect.Array;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import java.util.Arrays;
@@ -8,6 +11,7 @@ import java.util.Random;
 
 import java.util.Scanner;
 
+@SuppressWarnings("unused")
 public class Bowling {
 	
 	public static Random RandomClass = new Random();
@@ -23,6 +27,8 @@ public class Bowling {
 		private String Name;
 		
 		private int PinsKnocked;
+		
+		private int TotalPinsKnocked;
 		
 		private int Score;
 		
@@ -67,37 +73,71 @@ public class Bowling {
 		
 		public void printCurrentThrow() {
 			
+			String Report = "Status: ";
+			
 			switch (Throw) {
 			
 				case 0:
 					
-					print("Status: Skipped due to Strike");
+					Report += "Skipped (Strike)";
 					
 					break;
 					
 				case 1:
 					
-					print("Status: Throw 1");
+					Report += Strike ? "Strike!" : "Throw 1";
 					
 					break;
 					
 				case 2:
 					
-					print("Status: Throw 2");
+					Report += Spare ? "Spare!" : "Throw 2";
 					
 					break;
 			
 			}
 			
-			if (Spare) {
-				
-				print("Spare!");
-				
-			}
+			print(Report);
 			
-			if (Strike) {
+		}
+		
+		public void reportEndResult() throws IllegalArgumentException, IllegalAccessException {
+			
+			ArrayList<String> NotDisplayable = new ArrayList<String>();
+			
+			NotDisplayable.addAll(Arrays.asList("StrikeReward", "SpareReward", "PinsKnocked", "Strike", "Spare"));
+		
+			
+			Field[] Stats = Bowler.class.getDeclaredFields();
+			
+			for (Field Stat: Stats) {
 				
-				print("Strike!");
+				String StatName = Stat.getName();
+			
+				if (NotDisplayable.contains(StatName)) {
+					
+					continue;
+					
+				}
+				
+				Object StatType = Stat.getType();
+				
+				if (StatType == int.class) { // Is an integer
+					
+						
+					print(StatName + " : " + Stat.get(this));
+					
+				}
+
+				
+				if (StatType == String.class) { // Is a string
+						
+						print(StatName + " : " + String.valueOf(Stat.get(this)));
+
+					
+					
+				}
+					
 				
 			}
 			
@@ -156,6 +196,8 @@ public class Bowling {
 				
 				Spare = false;
 				
+				TotalPinsKnocked += PinsKnocked;
+				
 				PinsKnocked = 0;
 				
 			} else switch (Throw) {
@@ -172,6 +214,8 @@ public class Bowling {
 					
 					Score += PinsKnocked;
 					
+					TotalPinsKnocked += PinsKnocked;
+					
 					PinsKnocked = 0;
 					
 					break;
@@ -187,6 +231,12 @@ public class Bowling {
 	public static void print(String printstatement) {
 		
 		System.out.println(printstatement);
+		
+	}
+	
+	public static void print(boolean border) {
+		
+		print("----------------------------------------");
 		
 	}
 	
@@ -232,7 +282,7 @@ public class Bowling {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException {
 		
 		int Frames = 10;
 		
@@ -257,13 +307,13 @@ public class Bowling {
 				
 				for (int b = 1; b <= 2; b++) {
 					
-					print("----------------------------------------");
+					print(true);
 					
 					bowler.printName();
-					
-					bowler.printCurrentThrow();
 				
 					bowler.Bowl();
+					
+					bowler.printCurrentThrow();
 					
 					bowler.printPinsKnocked();
 					
@@ -272,9 +322,9 @@ public class Bowling {
 					bowler.printScore();
 			
 					
-					print("----------------------------------------");
+					print(true);
 					 
-					if (Option.equals("Throw")) {
+					if (Option.equalsIgnoreCase("Throw")) {
 						
 						Option = getOption();
 						
@@ -286,7 +336,7 @@ public class Bowling {
 				}
 				
 				
-				if (Option.equals("Bowler")) {
+				if (Option.equalsIgnoreCase("Bowler")) {
 						
 						Option = getOption();
 						
@@ -295,7 +345,7 @@ public class Bowling {
 				
 			}
 			
-			if (Option.equals("Frame")) {
+			if (Option.equalsIgnoreCase("Frame")) {
 				
 				Option = getOption();
 				
@@ -304,8 +354,15 @@ public class Bowling {
 			
 		}
 		
+		for (Bowler bowler: Bowlers) {
+			
+			print(true);
+			
+			bowler.reportEndResult();
+			
+		}
 		
-		
+		print(true);
 
 	}
 
