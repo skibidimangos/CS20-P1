@@ -67,7 +67,13 @@ public class Bowling {
 		
 		public void printPinsKnocked() {
 			
-			print("Pins Knocked:" + Integer.toString(PinsKnocked));
+			print("Pins Knocked: " + Integer.toString(PinsKnocked));
+			
+		}
+		
+		public int getThrow() {
+			
+			return this.Throw;
 			
 		}
 		
@@ -147,7 +153,11 @@ public class Bowling {
 		
 		public void Bowl() {
 			
-			PinsKnocked += (RandomClass.nextInt(0, (10 - PinsKnocked) + 1));
+			if (Throw > 0) {
+			
+				PinsKnocked += (RandomClass.nextInt(0, (10 - PinsKnocked) + 1));
+			
+			}
 			
 			checkResult();
 			
@@ -179,6 +189,10 @@ public class Bowling {
 			
 		}
 		
+		public void setThrow(int Throw) {
+			this.Throw = Throw;
+		}
+		
 		public void updateStats() {
 			
 			if (Strike || Spare) {
@@ -201,6 +215,12 @@ public class Bowling {
 				PinsKnocked = 0;
 				
 			} else switch (Throw) {
+			
+				case 0:
+					
+					Throw = 1;
+					
+					break;
 			
 				case 1:
 					
@@ -357,6 +377,13 @@ public class Bowling {
 		for (Bowler bowler: Bowlers) {
 			
 			print(true);
+			
+			if (bowler.getThrow() == 1) {
+				
+				bowler.setThrow(0);
+			
+			}
+			
 			
 			bowler.reportEndResult();
 			
