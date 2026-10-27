@@ -13,8 +13,6 @@ public class StudentRoster {
 
 	public static void main(String[] args) {
 		
-		int StudentRosterLength;
-		
 		Scanner Userinput = new Scanner(System.in);
 		
 		String[] StudentRoster = {};
