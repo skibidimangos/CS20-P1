@@ -1,14 +1,44 @@
 package Mastery;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class Life {
 	
-	public static ArrayList<Cell> Cells = new ArrayList<Cell>();
+	public static Scanner UserInput = new Scanner(System.in);
 	
-	public class Cell {
+	public static class CellManager {
 		
-		private ArrayList<int[]> Neighbors = new ArrayList<>();
+		public static ArrayList<Cell> StoredCells = new ArrayList<Cell>();
+	
+		public boolean storeCell (Cell newCell) {
+			
+			int[] NewCoordinates = newCell.getLocation();
+			
+			for (Cell cell: StoredCells) {
+				
+				int[] StoredCoordinates = cell.getLocation();
+				
+				if (Arrays.equals(StoredCoordinates, NewCoordinates)) {
+					
+					return false;
+					
+				}
+				
+			}
+			
+			StoredCells.add(newCell);
+			
+			return true;
+			
+		}
+	
+	}
+	
+	public static class Cell {
+		
+		private ArrayList<Cell> Neighbors = new ArrayList<>();
 		
 		private int NeighborCount = 0;
 		
@@ -22,7 +52,7 @@ public class Life {
 			
 		}
 		
-		public void checkNeighbors() {
+		public void checkNeighbors(String[][] Grid) {
 		
 			
 			int[][] Possibilities = {
@@ -59,14 +89,29 @@ public class Life {
 			
 			for (int[] Coordinate: SurroundingCoordinates) {
 				
-				if (Grid.containsCell(Coordinate)) {
+				Cell RetrievedCell = Grids.findCell(Coordinate);
+				
+				if (RetrievedCell != null) {
 					
-					Neighbors.add(Coordinate);
+					Neighbors.add(RetrievedCell);
 					
 				}
 				
 			}
+			
+			this.updateNeighborCount();
+			
+		}
 		
+		public void updateAliveYesterday(boolean Enabled) {
+			
+			this.AliveYesterday = Enabled;
+			
+		}
+		
+		public void updateNeighborCount() {
+			
+			this.NeighborCount = this.Neighbors.size();
 			
 		}
 		
@@ -78,13 +123,12 @@ public class Life {
 		
 	}
 	
-	
-	public class Grid {
+	public static class Grids {
 		
 		
-		private String[][] PastGrid = new String[20][20];
+		private static String[][] PastGrid = new String[20][20];
 		
-		private String[][] NewGrid = new String[20][20];
+		private static String[][] NewGrid = new String[20][20];
 		
 		
 		public static void displayGrid(String[][] Grid) {
@@ -107,17 +151,19 @@ public class Life {
 		public static void updateGrid(String[][] Grid) {
 			
 
-			for (int row = 0; row < Grid.length; row++) {
+			for (int Row = 0; Row < Grid.length; Row++) {
 				
-				  for (int col = 0; col < Grid[row].length; col++) {
+				  for (int Col = 0; Col < Grid[Row].length; Col++) {
 					  
-					  if (containsCell(row, col)) {
+					  Cell RetrievedCell = findCell(new int[] {Row, Col});
 						  
-						  Grid[row][col] = "X";
+					  if (RetrievedCell != null) {
+						  
+						  Grid[Row][Col] = "X";
 						  
 					  } else {
 						  
-						  Grid[row][col] = "0";
+						  Grid[Row][Col] = "0";
 						  
 					  }
 					  
@@ -129,30 +175,80 @@ public class Life {
 			
 		}
 		
-		public static boolean containsCell(int row, int col) {
+		public static void updateAliveBefore() {
 			
-			for (Cell cell: Cells) {
+			ArrayList<int[]> PastCells = new ArrayList<int[]>();
 			
+			ArrayList<int[]> NewCells = new ArrayList<int[]>();
+			
+			for (int Row = 0; Row < PastGrid.length; Row++) {
 				
-				int CellCol = cell.getLocation()[0];
+				  for (int Col = 0; Col < PastGrid[Row].length; Col++) {
+					  
+					  int[] Coordinates = {Row, Col};
+					  
+					  if (gridContainsCell(PastGrid, Coordinates)) {
+						  
+						  PastCells.add(Coordinates);
+						  
+					  } 
+					  
+			    }
+				  
+			}
+			
+			for (int Row = 0; Row < NewGrid.length; Row++) {
 				
-				int CellRow = cell.getLocation()[1];
+				  for (int Col = 0; Col < NewGrid[Row].length; Col++) {
+					  
+					  int[] Coordinates = {Row, Col};
+					  
+					  if (gridContainsCell(NewGrid, Coordinates)) {
+						  
+						  PastCells.add(Coordinates);
+						  
+					  } 
+					  
+			    }
+				  
+			}
+			
+			for (int Cell = 0; Cell < PastCells.size() ;){
 				
-				if (CellCol == col && CellRow == row) {
+				int[] PastCell = PastCells.get(Cell);
+				
+				if (NewCells.contains(PastCell)) {
 					
-					return true;
+					Cell RetrievedCell = findCell(PastCell);
+					
+					RetrievedCell.updateAliveYesterday(true);
 					
 				}
 				
 			}
-				
-				return false;
 			
 		}
 		
-		public static boolean containsCell(int[] Coordinates) {
+		
+		public static boolean gridContainsCell(String[][] Grid, int[] Coordinates) {
 			
-			for (Cell cell: Cells) {
+			int Col = Coordinates[0];
+			
+			int Row = Coordinates[1];
+			
+			if (Grid[Row][Col].equals("X")) {
+				
+				return true;
+				
+			}
+			
+			return false;
+			
+		}
+		
+		public static Cell findCell(int[] Coordinates) {
+			
+			for (Cell cell: CellManager.StoredCells) {
 			
 				
 				int CellCol = cell.getLocation()[0];
@@ -165,13 +261,129 @@ public class Life {
 				
 				if (CellRow == Col && CellCol == Row) {
 					
-					return true;
+					return cell;
 					
 				}
 				
 			}
 				
-				return false;
+				return null;
+			
+		}
+		
+		
+	}
+	
+	public static int[] getInputCoordinates(boolean canConfirm) {
+		
+		String Input = UserInput.nextLine();
+		
+		try {
+			
+			if (Input.equalsIgnoreCase("C") && canConfirm) {
+				
+				return new int[] {-1, -1};
+				
+			}
+			
+			if (Input.contains(",") == false) {
+				
+				System.out.println("Error: Input must contain comma.");
+				
+				return null;
+				
+			}
+			
+			String[] StringCoordinates = Input.split(",");
+			
+			int[] Coordinates = new int[2];
+			
+			if (StringCoordinates.length != 2) {
+				
+				System.out.println("Error: Input must feature two axises");
+				
+				return null;
+				
+			}
+			
+			for (int i = 0; i < 2; i ++) {
+				
+				int Value = Integer.parseInt(StringCoordinates[i]);
+				
+				if (Value >= 0 && Value < 20) {
+					
+					Coordinates[i] = Integer.parseInt(StringCoordinates[i]);
+					
+				} else {
+					
+					System.out.println("Coordinate values must be in the range 0 - 19.");
+					
+					return null;
+					
+				}
+				
+			}
+			
+			return Coordinates;
+				
+		} catch (NumberFormatException e) {
+			
+			System.out.println("Error: Input values must be integers besides for comma.");
+			
+		}
+		
+		return null;
+		
+	}
+	
+	public static void getStartingCells() {
+		
+		System.out.println("Enter Coordinates for a cell");
+		System.out.println("Format: 5,8 (x = 5, y = 8)");
+		
+		while (CellManager.StoredCells.size() < 1) {
+			
+			int[] Coordinates = getInputCoordinates(false);
+			
+			if (Coordinates == null) {
+				
+				continue;
+				
+			}
+			
+			Cell NewCell = new Cell(Coordinates);
+			
+			CellManager.StoredCells.add(NewCell);
+			
+		}
+		
+		while (true) {
+			
+			System.out.println("Enter Coordinates for a cell");
+			
+			System.out.println("Enter 'C' to confirm.");
+			
+			int[] Coordinates = getInputCoordinates(true);
+			
+			if (Coordinates == null) {
+				
+				continue;
+				
+ 			} else if (Coordinates[0] == -1 && Coordinates[1] == -1) {
+ 				
+ 			    return;
+ 			    
+ 			}
+			
+			Cell NewCell = new Cell(Coordinates);
+			
+			boolean Success = CellManager.StoredCells.add(NewCell);
+			
+			if (Success == false) {
+				
+				Sys
+				
+			}
 			
 		}
 		
@@ -182,6 +394,12 @@ public class Life {
 		
 
 	public static void main(String[] args) {
+		
+		getStartingCells();
+		
+		Grids.updateGrid(Grids.PastGrid);
+		
+		Grids.displayGrid(Grids.PastGrid);
 
 
 	}
