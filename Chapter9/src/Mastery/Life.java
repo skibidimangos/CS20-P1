@@ -3,6 +3,7 @@ package Mastery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 public class Life {
 	
@@ -10,27 +11,53 @@ public class Life {
 	
 	public static class CellManager {
 		
-		public static ArrayList<Cell> StoredCells = new ArrayList<Cell>();
+		private static ArrayList<Cell> StoredCells = new ArrayList<Cell>();
+		
+		
+		public static ArrayList<Cell> getStoredCells() {
+			
+			return StoredCells;
+			
+		}
 	
-		public boolean storeCell (Cell newCell) {
+		public static boolean storeCell (Cell newCell) {
 			
-			int[] NewCoordinates = newCell.getLocation();
-			
-			for (Cell cell: StoredCells) {
+			if (StoredCells.contains(newCell)) {
 				
-				int[] StoredCoordinates = cell.getLocation();
-				
-				if (Arrays.equals(StoredCoordinates, NewCoordinates)) {
-					
-					return false;
-					
-				}
+				return false;
 				
 			}
 			
 			StoredCells.add(newCell);
 			
 			return true;
+			
+		}
+		
+		public static void removeCell (Cell removedCell) {
+			
+			if (StoredCells.contains(removedCell)) {
+			
+				StoredCells.remove(removedCell);
+				
+				return;
+			
+			}
+			
+			System.out.println("Cell does not exist in storage.");
+		}
+		
+		public static int cellQuantity() {
+			
+			return StoredCells.size();
+			
+		}
+		
+		public static void updateAlive() {
+			
+			ArrayList<Cell> AliveCells = StoredCells.stream()
+										.filter(cell -> cell.isAlive())
+										.filter(cell -> cell.ne)
 			
 		}
 	
@@ -44,7 +71,7 @@ public class Life {
 		
 		private int[] Coordinates = new int[2];
 		
-		private boolean AliveYesterday = false;
+		private boolean Alive = false;
 		
 		public Cell(int[] Coordinates) {
 			
@@ -103,9 +130,9 @@ public class Life {
 			
 		}
 		
-		public void updateAliveYesterday(boolean Enabled) {
+		public void updateAlive(boolean Enabled) {
 			
-			this.AliveYesterday = Enabled;
+			this.Alive = Enabled;
 			
 		}
 		
@@ -119,6 +146,18 @@ public class Life {
 			
 			return this.Coordinates;
 
+		}
+		
+		public boolean isAlive() {
+			
+			return Alive;
+			
+		}
+		
+		public int getNeighborCount( ) {
+			
+			return this.NeighborCount;
+			
 		}
 		
 	}
@@ -157,7 +196,7 @@ public class Life {
 					  
 					  Cell RetrievedCell = findCell(new int[] {Row, Col});
 						  
-					  if (RetrievedCell != null) {
+					  if (RetrievedCell != null && RetrievedCell.isAlive()) {
 						  
 						  Grid[Row][Col] = "X";
 						  
@@ -172,60 +211,6 @@ public class Life {
 				  
 			}
 			
-			
-		}
-		
-		public static void updateAliveBefore() {
-			
-			ArrayList<int[]> PastCells = new ArrayList<int[]>();
-			
-			ArrayList<int[]> NewCells = new ArrayList<int[]>();
-			
-			for (int Row = 0; Row < PastGrid.length; Row++) {
-				
-				  for (int Col = 0; Col < PastGrid[Row].length; Col++) {
-					  
-					  int[] Coordinates = {Row, Col};
-					  
-					  if (gridContainsCell(PastGrid, Coordinates)) {
-						  
-						  PastCells.add(Coordinates);
-						  
-					  } 
-					  
-			    }
-				  
-			}
-			
-			for (int Row = 0; Row < NewGrid.length; Row++) {
-				
-				  for (int Col = 0; Col < NewGrid[Row].length; Col++) {
-					  
-					  int[] Coordinates = {Row, Col};
-					  
-					  if (gridContainsCell(NewGrid, Coordinates)) {
-						  
-						  PastCells.add(Coordinates);
-						  
-					  } 
-					  
-			    }
-				  
-			}
-			
-			for (int Cell = 0; Cell < PastCells.size() ;){
-				
-				int[] PastCell = PastCells.get(Cell);
-				
-				if (NewCells.contains(PastCell)) {
-					
-					Cell RetrievedCell = findCell(PastCell);
-					
-					RetrievedCell.updateAliveYesterday(true);
-					
-				}
-				
-			}
 			
 		}
 		
@@ -248,26 +233,17 @@ public class Life {
 		
 		public static Cell findCell(int[] Coordinates) {
 			
-			for (Cell cell: CellManager.StoredCells) {
+			Cell SelectedCell = CellManager.getStoredCells()
+								.stream()
+								.filter(cell -> Arrays.equals(cell.getLocation(), Coordinates))
+								.findFirst()
+								.orElse(null);
 			
+			if (SelectedCell != null) {
 				
-				int CellCol = cell.getLocation()[0];
-				
-				int CellRow = cell.getLocation()[1];
-				
-				int Col = Coordinates[0];
-				
-				int Row = Coordinates[1];
-				
-				if (CellRow == Col && CellCol == Row) {
-					
-					return cell;
-					
-				}
+				return SelectedCell.isAlive();
 				
 			}
-				
-				return null;
 			
 		}
 		
@@ -294,33 +270,17 @@ public class Life {
 				
 			}
 			
-			String[] StringCoordinates = Input.split(",");
+			int[] Coordinates = Arrays.stream(Input.split(","))
+												.map(String::strip)
+												.mapToInt(Integer::parseInt)
+												.filter(num -> num >= 0 && num <= 19)
+												.toArray();
 			
-			int[] Coordinates = new int[2];
-			
-			if (StringCoordinates.length != 2) {
+			if (Coordinates.length != 2) {
 				
-				System.out.println("Error: Input must feature two axises");
+				System.out.println("Error: Input must feature two axises / Error: Integers must be in the range 0 - 19");
 				
 				return null;
-				
-			}
-			
-			for (int i = 0; i < 2; i ++) {
-				
-				int Value = Integer.parseInt(StringCoordinates[i]);
-				
-				if (Value >= 0 && Value < 20) {
-					
-					Coordinates[i] = Integer.parseInt(StringCoordinates[i]);
-					
-				} else {
-					
-					System.out.println("Coordinate values must be in the range 0 - 19.");
-					
-					return null;
-					
-				}
 				
 			}
 			
@@ -341,7 +301,7 @@ public class Life {
 		System.out.println("Enter Coordinates for a cell");
 		System.out.println("Format: 5,8 (x = 5, y = 8)");
 		
-		while (CellManager.StoredCells.size() < 1) {
+		while (CellManager.cellQuantity() < 1) {
 			
 			int[] Coordinates = getInputCoordinates(false);
 			
@@ -353,7 +313,7 @@ public class Life {
 			
 			Cell NewCell = new Cell(Coordinates);
 			
-			CellManager.StoredCells.add(NewCell);
+			CellManager.storeCell(NewCell);
 			
 		}
 		
@@ -369,7 +329,7 @@ public class Life {
 				
 				continue;
 				
- 			} else if (Coordinates[0] == -1 && Coordinates[1] == -1) {
+ 			} else if (Arrays.equals(Coordinates, new int[] {-1,-1})) {
  				
  			    return;
  			    
@@ -377,11 +337,11 @@ public class Life {
 			
 			Cell NewCell = new Cell(Coordinates);
 			
-			boolean Success = CellManager.StoredCells.add(NewCell);
+			boolean Success = CellManager.storeCell(NewCell);
 			
 			if (Success == false) {
 				
-				Sys
+				System.out.println("Cell with coordinates: " + Arrays.toString(Coordinates) + " already exist.");
 				
 			}
 			
@@ -389,9 +349,12 @@ public class Life {
 		
 		
 	}
-
-
+	
+	public static void newDay() {
 		
+		
+		
+	}
 
 	public static void main(String[] args) {
 		
@@ -400,7 +363,6 @@ public class Life {
 		Grids.updateGrid(Grids.PastGrid);
 		
 		Grids.displayGrid(Grids.PastGrid);
-
 
 	}
 
