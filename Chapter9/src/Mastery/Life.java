@@ -2,7 +2,9 @@ package Mastery;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Life {
@@ -12,6 +14,30 @@ public class Life {
 	public static class CellManager {
 		
 		private static ArrayList<Cell> StoredCells = new ArrayList<Cell>();
+		
+		public static void initialize() {
+			
+			int Rows = Grids.getSize()[0];
+			
+			int Cols = Grids.getSize()[1];
+			
+			for (int a = 0; a < Rows; a++) {
+				
+				for (int b = 0; b < Cols; b++) {
+					
+					Cell newCell = new Cell(new int[] {a, b});
+					
+					storeCell(newCell);
+					
+				}
+				
+				
+			}
+			
+										
+										
+			
+		}
 		
 		
 		public static ArrayList<Cell> getStoredCells() {
@@ -53,11 +79,65 @@ public class Life {
 			
 		}
 		
+		public static Cell fetchCell(int[] Coordinates) {
+			
+			Cell FetchedCell = getStoredCells()
+							.stream()
+							.filter(cell -> Arrays.equals(cell.getLocation(), Coordinates))
+							.findFirst()
+							.orElse(null);
+			
+			if (FetchedCell == null) {
+			
+				System.out.println("Cell not found at: " + Coordinates.toString());
+				
+			}
+			
+			return FetchedCell;
+			
+		}
+		
 		public static void updateAlive() {
 			
-			ArrayList<Cell> AliveCells = StoredCells.stream()
-										.filter(cell -> cell.isAlive())
-										.filter(cell -> cell.ne)
+			ArrayList<Integer> LiveThreshold = new ArrayList<Integer>();
+			
+			ArrayList<Integer> ReviveThreshold = new ArrayList<Integer>();
+			
+			LiveThreshold.addAll(Arrays.asList(2,3)); /* Amount of neighbors for cell to come to survive */
+			
+			ReviveThreshold.addAll(Arrays.asList(3)); /* Amount of neighbors for cell to come to life */
+			
+			
+			
+			for (Cell cell : StoredCells) {
+				
+				cell.checkNeighbors();
+				
+				int NeighbourCount = cell.getNeighborCount();
+				
+				if (cell.isAlive()) {
+					
+					if (!LiveThreshold.contains(NeighbourCount)) {
+						
+						cell.updateAlive(false);
+						
+					}
+					
+					return;
+					
+				}
+				
+				if (!cell.isAlive()) {
+					
+					if (ReviveThreshold.contains(NeighbourCount)) {
+						
+						cell.updateAlive(true);
+					}
+					
+				}
+				
+				
+			}
 			
 		}
 	
@@ -79,7 +159,9 @@ public class Life {
 			
 		}
 		
-		public void checkNeighbors(String[][] Grid) {
+		public void checkNeighbors() {
+			
+			Neighbors.clear();
 		
 			
 			int[][] Possibilities = {
@@ -114,11 +196,11 @@ public class Life {
 			}
 			
 			
-			for (int[] Coordinate: SurroundingCoordinates) {
+			for (int[] Coordinates: SurroundingCoordinates) {
 				
-				Cell RetrievedCell = Grids.findCell(Coordinate);
+				Cell RetrievedCell = CellManager.fetchCell(Coordinates);
 				
-				if (RetrievedCell != null) {
+				if (RetrievedCell.isAlive()) {
 					
 					Neighbors.add(RetrievedCell);
 					
@@ -165,12 +247,10 @@ public class Life {
 	public static class Grids {
 		
 		
-		private static String[][] PastGrid = new String[20][20];
-		
-		private static String[][] NewGrid = new String[20][20];
+		private static String[][] Grid = new String[20][20];
 		
 		
-		public static void displayGrid(String[][] Grid) {
+		public static void displayGrid() {
 			
 			for (int row = 0; row < Grid.length; row++) {
 				
@@ -187,16 +267,29 @@ public class Life {
 			
 		}
 		
-		public static void updateGrid(String[][] Grid) {
+		public static int[] getSize() {
+			
+			int Rows = Grid.length;
+					
+			int Columns = Grid[0].length;
+			
+			return new int[] {Rows, Columns};
+			
+			
+		}
+		
+		public static void updateGrid() {
 			
 
 			for (int Row = 0; Row < Grid.length; Row++) {
 				
 				  for (int Col = 0; Col < Grid[Row].length; Col++) {
 					  
-					  Cell RetrievedCell = findCell(new int[] {Row, Col});
+					  int[] Location = {Row,Col};
+					  
+					  Cell RetrievedCell = CellManager.fetchCell(Location);
 						  
-					  if (RetrievedCell != null && RetrievedCell.isAlive()) {
+					  if (RetrievedCell.isAlive()) {
 						  
 						  Grid[Row][Col] = "X";
 						  
@@ -215,7 +308,7 @@ public class Life {
 		}
 		
 		
-		public static boolean gridContainsCell(String[][] Grid, int[] Coordinates) {
+		public static boolean gridContainsCell(int[] Coordinates) {
 			
 			int Col = Coordinates[0];
 			
@@ -228,22 +321,6 @@ public class Life {
 			}
 			
 			return false;
-			
-		}
-		
-		public static Cell findCell(int[] Coordinates) {
-			
-			Cell SelectedCell = CellManager.getStoredCells()
-								.stream()
-								.filter(cell -> Arrays.equals(cell.getLocation(), Coordinates))
-								.findFirst()
-								.orElse(null);
-			
-			if (SelectedCell != null) {
-				
-				return SelectedCell.isAlive();
-				
-			}
 			
 		}
 		
@@ -301,7 +378,13 @@ public class Life {
 		System.out.println("Enter Coordinates for a cell");
 		System.out.println("Format: 5,8 (x = 5, y = 8)");
 		
-		while (CellManager.cellQuantity() < 1) {
+		ArrayList<Cell> AliveCells = CellManager.getStoredCells()
+									.stream()
+									.filter(cell -> cell.isAlive())
+									.collect(Collectors.toCollection(ArrayList::new));
+										
+		
+		while (AliveCells.size() < 1) {
 			
 			int[] Coordinates = getInputCoordinates(false);
 			
@@ -311,9 +394,14 @@ public class Life {
 				
 			}
 			
-			Cell NewCell = new Cell(Coordinates);
+			Cell AliveCell = CellManager.fetchCell(Coordinates);
 			
-			CellManager.storeCell(NewCell);
+			AliveCell.updateAlive(true);
+			
+			AliveCells = CellManager.getStoredCells()
+					.stream()
+					.filter(cell -> cell.isAlive())
+					.collect(Collectors.toCollection(ArrayList::new));
 			
 		}
 		
@@ -335,34 +423,25 @@ public class Life {
  			    
  			}
 			
-			Cell NewCell = new Cell(Coordinates);
+			Cell AliveCell = CellManager.fetchCell(Coordinates);
 			
-			boolean Success = CellManager.storeCell(NewCell);
-			
-			if (Success == false) {
-				
-				System.out.println("Cell with coordinates: " + Arrays.toString(Coordinates) + " already exist.");
-				
-			}
+			AliveCell.updateAlive(true);
 			
 		}
 		
 		
 	}
 	
-	public static void newDay() {
-		
-		
-		
-	}
 
 	public static void main(String[] args) {
 		
+		CellManager.initialize();
+		
 		getStartingCells();
 		
-		Grids.updateGrid(Grids.PastGrid);
+		Grids.updateGrid();
 		
-		Grids.displayGrid(Grids.PastGrid);
+		Grids.displayGrid();
 
 	}
 
