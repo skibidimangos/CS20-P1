@@ -2,16 +2,21 @@ package Mastery;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Life {
 	
 	public static Scanner UserInput = new Scanner(System.in);
 	
 	public static class CellManager {
+		
+		public static Set<Integer> SurvivalThreshold = Set.of(2,3);
+		
+		public static Set<Integer> RevivalThreshold = Set.of(3);
 		
 		private static ArrayList<Cell> StoredCells = new ArrayList<Cell>();
 		
@@ -20,6 +25,14 @@ public class Life {
 			int Rows = Grids.getSize()[0];
 			
 			int Cols = Grids.getSize()[1];
+			
+			StoredCells = IntStream.range(0, Rows)
+					.boxed()
+					.flatMap(row -> IntStream.range(0, Cols)
+								.mapToObj(col -> new Cell(new int[] {row, col})
+							)
+					.collect(Collectors.toCollection(ArrayList::new));
+							
 			
 			for (int a = 0; a < Rows; a++) {
 				
@@ -81,15 +94,14 @@ public class Life {
 		
 		public static Cell fetchCell(int[] Coordinates) {
 			
-			Cell FetchedCell = getStoredCells()
-							.stream()
+			Cell FetchedCell = StoredCells.stream()
 							.filter(cell -> Arrays.equals(cell.getLocation(), Coordinates))
 							.findFirst()
 							.orElse(null);
 			
 			if (FetchedCell == null) {
 			
-				System.out.println("Cell not found at: " + Coordinates.toString());
+				System.out.println("Cell not found at: " + Arrays.toString(Coordinates));
 				
 			}
 			
@@ -97,55 +109,33 @@ public class Life {
 			
 		}
 		
+		public static void updateNeighbors() {
+			
+			StoredCells.forEach(cell -> cell.updateNeighbours());
+			
+		}
+		
 		public static void updateAlive() {
 			
-			ArrayList<Integer> LiveThreshold = new ArrayList<Integer>();
+			ArrayList<Cell> TurnDead = StoredCells.stream()
+					.filter(cell -> cell.isAlive()) // is alive
+					.filter(cell -> !SurvivalThreshold.contains(cell.getNeighborCount())) // does not have 2 or 3 neighbors
+					.collect(Collectors.toCollection(ArrayList::new));
 			
-			ArrayList<Integer> ReviveThreshold = new ArrayList<Integer>();
+			ArrayList<Cell> TurnAlive = StoredCells.stream()
+					.filter(cell -> !cell.isAlive()) // is not alive
+					.filter(cell -> RevivalThreshold.contains(cell.getNeighborCount())) // has three neighbors
+					.collect(Collectors.toCollection(ArrayList::new));
 			
-			LiveThreshold.addAll(Arrays.asList(2,3)); /* Amount of neighbors for cell to come to survive */
+			TurnDead.forEach(cell -> cell.updateAlive(false));
 			
-			ReviveThreshold.addAll(Arrays.asList(3)); /* Amount of neighbors for cell to come to life */
-			
-			
-			
-			for (Cell cell : StoredCells) {
-				
-				cell.checkNeighbors();
-				
-				int NeighbourCount = cell.getNeighborCount();
-				
-				if (cell.isAlive()) {
-					
-					if (!LiveThreshold.contains(NeighbourCount)) {
-						
-						cell.updateAlive(false);
-						
-					}
-					
-					return;
-					
-				}
-				
-				if (!cell.isAlive()) {
-					
-					if (ReviveThreshold.contains(NeighbourCount)) {
-						
-						cell.updateAlive(true);
-					}
-					
-				}
-				
-				
-			}
+			TurnAlive.forEach(cell -> cell.updateAlive(true));
 			
 		}
 	
 	}
 	
 	public static class Cell {
-		
-		private ArrayList<Cell> Neighbors = new ArrayList<>();
 		
 		private int NeighborCount = 0;
 		
@@ -159,11 +149,8 @@ public class Life {
 			
 		}
 		
-		public void checkNeighbors() {
-			
-			Neighbors.clear();
+		public void updateNeighbours() {
 		
-			
 			int[][] Possibilities = {
 					{0,1}, {0, -1},
 					
@@ -174,53 +161,37 @@ public class Life {
 					{-1, 1}, {1, -1}
 			};
 			
-			ArrayList<int[]> SurroundingCoordinates = new ArrayList<>();
-			
 			int OriginX = this.getLocation()[0];
 			
 			int OriginY = this.getLocation()[1];
 			
-			for (int[] Possibility: Possibilities) {
-				
-				int NewX = OriginX + Possibility[0];
-				
-				int NewY = OriginY + Possibility[1];
-				
-				if (NewX >= 0 && NewX < 20 && NewY >= 0 && NewY < 20) {
-					
-					SurroundingCoordinates.add(new int[]{NewX, NewY});
-					
-				}
-				
-				
-			}
+			int[] GridSize = Grids.getSize();
 			
+			ArrayList<int[]> SurroundingCoordinates = Arrays.stream(Possibilities)
+														.map(Possibility -> new int[] {
+															OriginX + Possibility[0], 
+															OriginY + Possibility[1]
+														})
+														.filter(Possibility -> 
+														(Possibility[0] >= 0 && Possibility[0] < GridSize[0]) &&
+														(Possibility[1] >= 0 && Possibility[1] < GridSize[1])
+														)
+														.collect(Collectors.toCollection(ArrayList::new));
 			
-			for (int[] Coordinates: SurroundingCoordinates) {
-				
-				Cell RetrievedCell = CellManager.fetchCell(Coordinates);
-				
-				if (RetrievedCell.isAlive()) {
-					
-					Neighbors.add(RetrievedCell);
-					
-				}
-				
-			}
-			
-			this.updateNeighborCount();
+			this.NeighborCount = (int) CellManager.getStoredCells()
+									.stream()
+									.filter(cell -> cell.isAlive())
+									.filter(cell -> SurroundingCoordinates.stream()
+										.anyMatch(Coordinate -> 
+										Arrays.equals(Coordinate, cell.getLocation()))
+									)
+									.count();
 			
 		}
 		
 		public void updateAlive(boolean Enabled) {
 			
 			this.Alive = Enabled;
-			
-		}
-		
-		public void updateNeighborCount() {
-			
-			this.NeighborCount = this.Neighbors.size();
 			
 		}
 		
@@ -252,11 +223,11 @@ public class Life {
 		
 		public static void displayGrid() {
 			
-			for (int row = 0; row < Grid.length; row++) {
+			for (int Y = 0; Y < Grid[0].length; Y++) {
 				
-				  for (int col = 0; col < Grid[row].length; col++) {
+				  for (int X = 0; X < Grid.length; X++) {
 					  
-					  System.out.print(Grid[row][col]);
+					  System.out.print(Grid[X][Y]);
 					  
 					  
 			    }
@@ -308,23 +279,6 @@ public class Life {
 		}
 		
 		
-		public static boolean gridContainsCell(int[] Coordinates) {
-			
-			int Col = Coordinates[0];
-			
-			int Row = Coordinates[1];
-			
-			if (Grid[Row][Col].equals("X")) {
-				
-				return true;
-				
-			}
-			
-			return false;
-			
-		}
-		
-		
 	}
 	
 	public static int[] getInputCoordinates(boolean canConfirm) {
@@ -333,7 +287,7 @@ public class Life {
 		
 		try {
 			
-			if (Input.equalsIgnoreCase("C") && canConfirm) {
+			if (Input.equalsIgnoreCase("c") && canConfirm) {
 				
 				return new int[] {-1, -1};
 				
@@ -350,22 +304,33 @@ public class Life {
 			int[] Coordinates = Arrays.stream(Input.split(","))
 												.map(String::strip)
 												.mapToInt(Integer::parseInt)
-												.filter(num -> num >= 0 && num <= 19)
 												.toArray();
 			
 			if (Coordinates.length != 2) {
 				
-				System.out.println("Error: Input must feature two axises / Error: Integers must be in the range 0 - 19");
+				System.out.println("Invalid Coordinates, only two values allowed.");
 				
 				return null;
 				
 			}
 			
+			int[] GridSize = Grids.getSize();
+			
+			if ((Coordinates[0] < 0 || Coordinates[0] > GridSize[0]) || 
+				(Coordinates[1] < 0 || Coordinates[1] > GridSize[1])) {
+				
+				System.out.println("Invalid Coordinates, values must be within values 0 - " + GridSize[0] + ".");
+				
+				return null;
+				
+			}
+			
+			
 			return Coordinates;
 				
 		} catch (NumberFormatException e) {
 			
-			System.out.println("Error: Input values must be integers besides for comma.");
+			System.out.println("Error: Input can only contain integers and commas.");
 			
 		}
 		
@@ -432,6 +397,16 @@ public class Life {
 		
 	}
 	
+	public static void newDay() {
+		
+		CellManager.updateNeighbors();
+		
+		CellManager.updateAlive();
+		
+		Grids.updateGrid();
+		
+	}
+	
 
 	public static void main(String[] args) {
 		
@@ -442,6 +417,18 @@ public class Life {
 		Grids.updateGrid();
 		
 		Grids.displayGrid();
+		
+		while (true) {
+			
+			System.out.println("Enter anything to continue to the next day");
+			
+			UserInput.nextLine();
+			
+			newDay();
+			
+			Grids.displayGrid();
+			
+		}
 
 	}
 
