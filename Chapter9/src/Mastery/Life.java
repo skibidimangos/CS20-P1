@@ -2,7 +2,6 @@ package Mastery;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -29,27 +28,10 @@ public class Life {
 			StoredCells = IntStream.range(0, Rows)
 					.boxed()
 					.flatMap(row -> IntStream.range(0, Cols)
-								.mapToObj(col -> new Cell(new int[] {row, col})
+							.mapToObj(col -> new Cell(col, row))
 							)
 					.collect(Collectors.toCollection(ArrayList::new));
-							
-			
-			for (int a = 0; a < Rows; a++) {
-				
-				for (int b = 0; b < Cols; b++) {
-					
-					Cell newCell = new Cell(new int[] {a, b});
-					
-					storeCell(newCell);
-					
-				}
-				
-				
-			}
-			
-										
-										
-			
+								
 		}
 		
 		
@@ -146,6 +128,12 @@ public class Life {
 		public Cell(int[] Coordinates) {
 			
 			this.Coordinates = Coordinates;
+			
+		}
+		
+		public Cell(int col, int row) {
+			
+			this.Coordinates = new int[] {col,row};
 			
 		}
 		
