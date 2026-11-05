@@ -4,162 +4,117 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import java.util.ArrayList;
-
 import java.util.Scanner;
 
 public class Coder {
-	
-	public static StringBuilder sb;
 	
 	public static int ShiftAmount;
 	
 	public static Scanner UserInput = new Scanner(System.in);
 	
-	public static ArrayList<Integer> CapitalCodes = IntStream.range(65, 90 + 1)
+	public static ArrayList<Integer> UppercaseCharacters = IntStream.range(65, 90 + 1)
 							        .boxed()
 							        .collect(Collectors.toCollection(ArrayList::new));
 
-	public static ArrayList<Integer> UnderScoreCodes = IntStream.range(97, 122 + 1)
+	public static ArrayList<Integer> LowercaseCharacters = IntStream.range(97, 122 + 1)
 								    .boxed()
 								    .collect(Collectors.toCollection(ArrayList::new));
-
 	
-	public static int Decode(int character) {
+	public static ArrayList<Integer> AllCharacters = IntStream.range(20, 126 + 1)
+									.boxed()
+									.collect(Collectors.toCollection(ArrayList::new));
+	
+	public static ArrayList<Integer> SpecialCharacters = IntStream.of('\n', '\r')
+														.boxed()
+														.collect(Collectors.toCollection(ArrayList::new));
+	
+	
+	public static int Shift(int character, String Mode) {
 		
-		boolean isCapital = CapitalCodes.contains(character);
-		
-		if (isCapital) {
-			
-			int Start = CapitalCodes.getFirst();
-			
-			int End = CapitalCodes.getLast();
-			
-			int NewCharacter = character - ShiftAmount;
-			
-			while (NewCharacter < Start) {
-				
-				int Offset = NewCharacter - Start;
-				
-				NewCharacter = End - Math.abs(Offset);
-				
-			}
-			
-			return NewCharacter;
-			
+		if (SpecialCharacters.contains(character)) {
+		    return character;
 		}
 		
-		int Start = UnderScoreCodes.getFirst();
+		boolean isCapital = UppercaseCharacters.contains(character);
 		
-		int End = UnderScoreCodes.getLast();
+		boolean isUnderScore = LowercaseCharacters.contains(character);
 		
-		int NewCharacter = character - ShiftAmount;
+	    int Start = isCapital ? UppercaseCharacters.getFirst() : 
+	    			isUnderScore ? LowercaseCharacters.getFirst() : 
+    				AllCharacters.getFirst();
+	    
+	    int Size = isCapital ? UppercaseCharacters.size() : 
+	    			isUnderScore ? LowercaseCharacters.size() :
+					AllCharacters.size();
+    					
+	    
+	    int Operation = switch (Mode) {
+	    	
+	    	case "encode" -> 1;
+	    	
+	    	case "decode" -> -1;
+	    	
+	    	default -> throw new IllegalArgumentException("Unexpected value: " + Mode);
+	    	
+	    };
 		
-		while (NewCharacter < Start) {
-			
-			int Offset = NewCharacter - Start;
-			
-			NewCharacter = End - Math.abs(Offset);
-			
-		}
+		int NewCharacter = Start + Math.floorMod(character + (ShiftAmount * Operation) - Start, Size);
 		
 		return NewCharacter;
-		
-		
-		
-	}
-	
-	public static int Encode(int character) {
-		
-		boolean isCapital = CapitalCodes.contains(character);
-		
-		if (isCapital) {
-			
-			int Start = CapitalCodes.getFirst();
-			
-			int End = CapitalCodes.getLast();
-			
-			int NewCharacter = character + ShiftAmount;
-			
-			if (NewCharacter > End) {
-				
-				int Offset = NewCharacter - End;
-				
-				NewCharacter = Start + Math.abs(Offset) - 1;
-				
-			}
-			
-			return NewCharacter;
-			
-		}
-		
-		int Start = UnderScoreCodes.getFirst();
-		
-		int End = UnderScoreCodes.getLast();
-		
-		int NewCharacter = character + ShiftAmount;
-		
 
-		
-		if (NewCharacter > End) {
-			
-			int Offset = NewCharacter - End;
-			
-			NewCharacter = Start + Math.abs(Offset) - 1;
-			
-		}
-		
-		return NewCharacter;
-		
-		
 	}
 	
 	public static String ProcessString(String Message, String Mode) {
 		
-		int[] CharArray = null;
+		StringBuilder NewMessage = new StringBuilder();
 		
+		boolean isMultiLine = Message.lines().count() > 1;
+		
+		Message = isMultiLine ? Message : Message.strip();
+
 		switch (Mode) {
 		
 		case "encode":
 		
-			CharArray = Message.strip()
-								.chars()
-								.filter(chr -> CapitalCodes.contains(chr) 
-										|| UnderScoreCodes.contains(chr))
-								.map(chr -> Encode(chr))
-								.toArray();
+			Message.chars()
+					.filter(chr -> AllCharacters.contains(chr)
+					|| SpecialCharacters.contains(chr))
+					.map(chr -> Shift(chr, Mode))
+					.forEach(chr -> NewMessage.append((char) chr));
 			
 			break;
 			
 		case "decode":
 			
-			CharArray = Message.strip()
-								.chars()
-								.filter(chr -> CapitalCodes.contains(chr) 
-										|| UnderScoreCodes.contains(chr))
-								.map(chr -> Decode(chr))
-								.toArray();
+			Message.chars()
+					.filter(chr -> AllCharacters.contains(chr)
+					|| SpecialCharacters.contains(chr))
+					.map(chr -> Shift(chr, Mode))
+					.forEach(chr -> NewMessage.append((char) chr));
 			
 			break;
 		
 		}
-			
-		return sb.toString()
+		
+
+		return NewMessage.toString();
 		
 	}
 	
-	public static void getShift() {
+	public static int getShift() {
 		
 		System.out.println("Input Shift Amount: ");
 		
 		while (true) {
 			
-			String Input = UserInput.next();
+			String Input = UserInput.nextLine()
+									.strip();
 			
 			try {
 				
 				ShiftAmount = Integer.parseInt(Input);
 				
-				return;
+				return ShiftAmount;
 			
 			} catch (NumberFormatException e) {
 				
@@ -175,15 +130,23 @@ public class Coder {
 		
 		System.out.println("Input Message: ");
 		
-		while (true) {
+		StringBuilder Message = new StringBuilder();
+		
+		while (UserInput.hasNextLine()) {
 			
-			String Message = UserInput.nextLine();
+			String Input = UserInput.nextLine();
 			
-			sb = new StringBuilder(Message.length());
+			if (Input.isEmpty()) {
+				
+				break;
+			}
 			
-			return Message;
+			Message.append(Input)
+					.append("\n");
 			
 		}
+		
+		return Message.toString();
 		
 	}
 	
@@ -193,11 +156,16 @@ public class Coder {
 		
 		while (true) {
 			
-			String Mode = UserInput.next();
+			String Mode = UserInput.nextLine()
+									.strip();
 			
-			if (Mode.equalsIgnoreCase("Encode") || Mode.equalsIgnoreCase("Decode"));
+			if (Mode.equalsIgnoreCase("Encode") || Mode.equalsIgnoreCase("Decode")) {
 			
 				return Mode.toLowerCase();
+				
+			}
+			
+				System.out.println("Invalid input, must be encode or decode.");
 			
 		}
 		
@@ -211,7 +179,7 @@ public class Coder {
 			
 			String Mode = getMode();
 			
-			getShift();
+			ShiftAmount = getShift();
 			
 			System.out.println(ProcessString(Message, Mode));
 		
