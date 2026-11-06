@@ -136,9 +136,13 @@ public class Coder {
 			
 			String Input = UserInput.nextLine();
 			
-			if (Input.isEmpty()) {
+			boolean MessageEmpty = Message.toString()
+										.isBlank();
+			
+			if (Input.isEmpty() && !MessageEmpty) {
 				
 				break;
+				
 			}
 			
 			Message.append(Input)
