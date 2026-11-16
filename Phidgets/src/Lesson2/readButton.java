@@ -2,31 +2,61 @@ package Lesson2;
 
 import com.phidget22.*;
 
+import java.io.BufferedReader;
+
+import java.io.InputStreamReader;
+
+import java.io.IOException;
+
 public class readButton {
+	
+	static BufferedReader reader = new BufferedReader(
+			new InputStreamReader(System.in)
+			);
+	
+	public static void Deactivate(DigitalOutput Device) throws Exception {
+		Device.setState(false);
+		Device.close();
+	}
+	
+	public static void Deactivate(DigitalInput Device) throws Exception {
+		Device.close();
+	}
 	
     public static void main(String[] args) throws Exception{
         
 	    //Create 
-	    DigitalInput redButton = new DigitalInput();
+	    DigitalInput greenButton = new DigitalInput();
 	
 	    //Address 
-	    redButton.setHubPort(5);
-	    redButton.setIsHubPortDevice(true);
+	    greenButton.setHubPort(5);
+	    greenButton.setIsHubPortDevice(true);
 	
 	    //Open 
-	    redButton.open(1000);
+	    greenButton.open(1000);
 	
 	    //Use your Phidgets 
 	    
-	    boolean PreviousState = redButton.getState();
+	    boolean PreviousState = greenButton.getState();
 	    
 	    while(true)	{
 	    	
-	    	boolean ButtonState = redButton.getState();
+	    	if (reader.ready()) {
+	    		
+	    		if (reader.read() == 'y') {
+	    			
+	    			break;
+	    			
+	    		}
+	    		
+	    		
+	    	}
+	    	
+	    	boolean ButtonState = greenButton.getState();
 	    	
 	    	if (PreviousState != ButtonState) {
 	    	
-	            System.out.println("Button State: " + redButton.getState());
+	            System.out.println("Button State: " + greenButton.getState());
 	            
 	            PreviousState = ButtonState;
 	            
@@ -34,6 +64,8 @@ public class readButton {
 	            
             Thread.sleep(150);
     	}
+	    
+	    Deactivate(greenButton);
 	    
 	    
 	    

@@ -1,10 +1,27 @@
 package Lesson1;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import com.phidget22.*;
 
 public class blinkLED {
 	
-	 public static void main(String[] args) throws Exception{
+	static BufferedReader reader = new BufferedReader(
+			new InputStreamReader(System.in)
+			);
+	
+	
+	public static void Deactivate(DigitalOutput Device) throws Exception {
+		Device.setState(false);
+		Device.close();
+	}
+	
+	public static void Deactivate(DigitalInput Device) throws Exception {
+		Device.close();
+	}
+	
+	public static void main(String[] args) throws Exception {
 
         //Create 
         DigitalOutput greenLED = new DigitalOutput();
@@ -19,6 +36,16 @@ public class blinkLED {
 
         while(true)	{
         	
+	    	if (reader.ready()) {
+	    		
+	    		if (reader.read() == 'y') {
+	    			
+	    			break;
+	    			
+	    		}
+	    		
+	    	}
+        	
         	greenLED.setState(true);
         	
             Thread.sleep(2000);
@@ -30,6 +57,9 @@ public class blinkLED {
             }
             
         }
+        
+        Deactivate(greenLED);
+        
 	        
     }
 
