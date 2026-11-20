@@ -11,6 +11,7 @@ import java.util.List;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MultipleVINTHubs { 
 	
@@ -23,29 +24,25 @@ public class MultipleVINTHubs {
 	
 	public static AtomicBoolean Triggered = new AtomicBoolean(false);
 	
-	public static AtomicBoolean GameEnd = new AtomicBoolean(true);
-	
-	public static boolean DetectInput(char ExpectedInput) throws IOException {
+	public static char DetectInput() throws IOException {
 		
     	if (reader.ready()) {
     		
-    		if (reader.read() == ExpectedInput) {
-    			
-    			return true;
-    			
-    		}
+    		return (char) reader.read();
     		
     	}
     	
-    	return false;
+    	return (char) reader.read();
 		
 	}
 	
 	public static class Player {
 		
+		private AtomicBoolean PlayerFinished = new AtomicBoolean(true);
+		
 		private String Name;
 		
-		private int Points = 0;
+		private AtomicInteger Points = new AtomicInteger(0);
 		
 		private ArrayList<DigitalOutput> LEDs;
 		
@@ -59,17 +56,11 @@ public class MultipleVINTHubs {
 	                
 	            	boolean State = e.getState();
 	            	
-	            	if (State && !Triggered.get()) {
+	            	if (State && Triggered.compareAndSet(false, true)) {
 	            		
-	            		System.out.println(Name + "Pressed correct button!");
+	            		System.out.println(Name + " Pressed correct button! +1 Point.");
 	            		
-	            		Points += 1;
-	            		
-	            		Triggered.set(true);
-	            		
-	            		GameEnd.set(true);
-	            		
-	            		GameManager.displayScores();
+	            		Points.incrementAndGet();
 	            		
 	            	}
 	            	
@@ -84,17 +75,11 @@ public class MultipleVINTHubs {
 	                
 	            	boolean State = e.getState();
 	            	
-	            	if (State && !Triggered.get()) {
+	            	if (State && Triggered.compareAndSet(false, true)) {
 	            		
 	            		System.out.println(Name + " Pressed wrong button! -1 Point.");
 	            		
-	            		Points -= 1;
-	            		
-	            		Triggered.set(true);
-	            		
-	            		GameEnd.set(true);
-	            		
-	            		GameManager.displayScores();
+	            		Points.decrementAndGet();
 	            		
 	            	}
 	            	
@@ -124,7 +109,7 @@ public class MultipleVINTHubs {
 		
 		public int fetchPoints() {
 			
-			return this.Points;
+			return this.Points.get();
 			
 		}
 		
@@ -134,9 +119,19 @@ public class MultipleVINTHubs {
 			
 		}
 		
-		public void playRound() throws InterruptedException {
+		public boolean isFinished() {
 			
-			GameEnd.set(false);
+			return this.PlayerFinished.get();
+			
+		}
+		
+		public void changeStatus(boolean newStatus) {
+			
+			this.PlayerFinished.set(newStatus);
+			
+		}
+		
+		public void playRound() throws InterruptedException, PhidgetException {
 			
 			int CorrectColor = random.nextInt(0, 1 + 1); // 1 = Red, 2 = Green.
 			
@@ -161,98 +156,84 @@ public class MultipleVINTHubs {
 			
 			IncorrectButton.addStateChangeListener(IncorrectListener);
 			
-			awaitTrigger();
-			
-			CorrectButton.removeStateChangeListener(CorrectListener);
-			
-			IncorrectButton.removeStateChangeListener(IncorrectListener);
-			
 			try {
-				
-				CorrectLED.setState(false);
-				
-			} catch (PhidgetException e) {
 
-				e.printStackTrace();
-			}
+
+			    awaitTrigger();
+
+			} finally {
+
+			    CorrectButton.removeStateChangeListener(CorrectListener);
+
+			    IncorrectButton.removeStateChangeListener(IncorrectListener);
+
+			    CorrectLED.setState(false);
+			    
+			    this.changeStatus(true);
+
 			
-			Triggered.set(false);
+			}
 			
 		}
 		
 	}
 	
-	public static class GameManager extends Thread {
+	public static class GameManager {
 		
 		private static Player Player1;
 		
 		private static Player Player2;
 		
-		public GameManager(Player Player1, Player Player2) {
+		public static void startThread(Player player) {
 			
-			GameManager.Player1 = Player1;
-			
-			GameManager.Player2 = Player2;
-			
-		}
-		
-		public static void displayScores() {
-			
-			System.out.println(Player1.fetchName() + " : " + Player1.fetchPoints());
-			
-			System.out.println(Player2.fetchName() + " : " + Player2.fetchPoints());
-			
-		}
-		
-		public void run() {
-			
-			while (true) {
-			
-				if (GameEnd.get()) {
-			
-					try {
-							
-						if (DetectInput('b')) {
-							
-							for (int i = 3; i > 0; i--) {
-								
-								System.out.println(i);
-								
-								Thread.sleep(1000);
-								
-							}
-							
-							new Thread(() -> Player1.playRound()).start();
-							
-							new Thread(() -> Player2.playRound()).start();
-								
-						}
-					
-					} catch (InterruptedException | IOException e) {
-						
-						e.printStackTrace();
-						
-					}
+			new Thread(() -> {
 				
+				try {
+					
+					player.playRound();
+					
+				} catch (InterruptedException | PhidgetException e) {
+
+					e.printStackTrace();
+					
 				}
+			}).start();
 			
-		        try {
-
-		            Thread.sleep(10);
-
-		        } catch (InterruptedException e) {
-
-		            Thread.currentThread().interrupt();
-		            break;
-
-		        }
+		}
+		
+		public static void startMatch() throws IOException, InterruptedException {
+			
+			if (!Player1.isFinished() || !Player2.isFinished()) {
+				
+				return;
+				
+			}
+				
+			Player1.changeStatus(false);
+			
+			Player2.changeStatus(false);
+			
+			for (int i = 3; i > 0; i--) {
+				
+				System.out.println(i);
+				
+				Thread.sleep(1000);
 				
 			}
 			
-			
+			startThread(Player1);
+			startThread(Player2);
+
 		}
 		
-		
+		public static void checkScore() {
+				
+				System.out.println(Player1.fetchName() + " : " + Player1.fetchPoints());
+				
+				System.out.println(Player2.fetchName() + " : " + Player2.fetchPoints());
+			
+		}
+	
 	}
 	
 	public static class Hub {
@@ -382,27 +363,48 @@ public class MultipleVINTHubs {
         
         Player Player2 = new Player("Player2", Hub2LEDS, Hub2Buttons);
         
-        GameManager manager = new GameManager(Player1, Player2);
+        GameManager.Player1 = Player1;
         
-        manager.start();
+        GameManager.Player2 = Player2;
+        
+        boolean Running = true;
         
         System.out.println("Enter 'b' to start game.");
         
-        //Use your Phidgets
-        while(true){
+        System.out.println("Enter 'c' to see score.");
+        
+        System.out.println("Enter 's' to end the program.");
+        
+        while(Running){
         	
-        	if (DetectInput('s')) {
+        	char Input = DetectInput();
+        	
+        	switch (Input) {
+        	
+        		case 's':
         		
-        		break;
-        		
+        			Running = false;
+        			
+        			break;
+        			
+        		case 'b':
+        			
+        			GameManager.startMatch();
+        			
+        			break;
+        			
+        		case 'c':
+        			
+        			GameManager.checkScore();
+        			
+        			break;
+        	
         	}
 	    	
             Thread.sleep(10);
         }
         
         DeactivateDevices(OutputDevices, InputDevices);
-        
-        manager.interrupt();
         
     }
 
