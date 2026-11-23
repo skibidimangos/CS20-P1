@@ -139,7 +139,7 @@ public class ButtonLEDEvents {
 	    		
 	    		DeactivateDevices(InputDevices);
 	    		
-	    		for (int i = 0; i < 4; i++) {
+	    		for (int i = 0; i < 6; i++) {
 	    			
 	    	        redLED.setState(true);
 	    	        
@@ -159,7 +159,7 @@ public class ButtonLEDEvents {
 	    		
 	    		DeactivateDevices(InputDevices);
 	    		
-	    		for (int i = 0; i < 4; i++) {
+	    		for (int i = 0; i < 6; i++) {
 	    			
 	    	        greenLED.setState(true);
 	    	        
@@ -179,7 +179,7 @@ public class ButtonLEDEvents {
 	    	
 	    	greenLED.setState(GreenLEDActivated);
         	
-            Thread.sleep(150); // Output frequency does not change based on loop iteration rate.  
+            Thread.sleep(10);
             
         }
         

@@ -114,9 +114,9 @@ public class ButtonsAndLeds {
 	            
 	    	}
 	    	
-	    	greenLED.setState(RedState);
+	    	greenLED.setState(!RedState);
 	    	
-	    	redLED.setState(GreenState);
+	    	redLED.setState(!GreenState);
 	    	
 	    	PreviousGreenState = GreenState;
 	    	

@@ -54,7 +54,7 @@ public class DataInterval { // Compared to lesson 5, the output is no longer at 
         //Set Data Interval 
         temperatureSensor.setDataInterval(1000); // 500ms -> Shorter, 60000ms -> Longer.
         
-        //Not all phidgets have a data interval. They have to have a constant sensor that measures something.
+        //LEDs and Buttons do not have a data interval since they do not have a constant sensor that measures something.
 
         //Keep program running
         while (true) {

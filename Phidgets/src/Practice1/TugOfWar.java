@@ -108,7 +108,7 @@ public class TugOfWar {
 	    		
 	    		Deactivate(InputDevices);
 	    		
-	    		for (int i = 0; i < 4; i++) {
+	    		for (int i = 0; i < 6; i++) {
 	    			
 	    	        redLED.setState(true);
 	    	        
@@ -128,7 +128,7 @@ public class TugOfWar {
 	    		
 	    		Deactivate(InputDevices);
 	    		
-	    		for (int i = 0; i < 4; i++) {
+	    		for (int i = 0; i < 6; i++) {
 	    			
 	    	        greenLED.setState(true);
 	    	        

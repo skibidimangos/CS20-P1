@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MultipleVINTHubs { 
+public class MultipleVINTHubs {  // Reaction Time game
 	
 	
 	static BufferedReader reader = new BufferedReader(
@@ -205,6 +205,8 @@ public class MultipleVINTHubs {
 			
 			if (!Player1.isFinished() || !Player2.isFinished()) {
 				
+				System.out.println("Can't start, previous match hasn't ended.");
+				
 				return;
 				
 			}
@@ -212,6 +214,8 @@ public class MultipleVINTHubs {
 			Player1.changeStatus(false);
 			
 			Player2.changeStatus(false);
+			
+			Triggered.set(false);
 			
 			for (int i = 3; i > 0; i--) {
 				

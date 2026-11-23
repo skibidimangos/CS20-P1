@@ -22,6 +22,8 @@ public class blinkLED {
 	}
 	
 	public static void main(String[] args) throws Exception {
+		
+		System.out.println("Start");
 
         //Create 
         DigitalOutput greenLED = new DigitalOutput();
@@ -54,6 +56,7 @@ public class blinkLED {
             	greenLED.setState(false);
             	Thread.sleep(50);
             	greenLED.setState(true);
+            	Thread.sleep(50);
             }
             
         }

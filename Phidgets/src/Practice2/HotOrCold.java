@@ -37,14 +37,25 @@ public class HotOrCold {
     public static void main(String[] args) throws Exception{
 
         //Create 
-        HumiditySensor humiditySensor = new HumiditySensor();
         TemperatureSensor temperatureSensor = new TemperatureSensor();
+        
+        DigitalOutput redLED = new DigitalOutput();
+        
+        DigitalOutput greenLED = new DigitalOutput();
 
         //Open 
-        humiditySensor.open(1000);
+        
+        redLED.setHubPort(1);
+        redLED.setIsHubPortDevice(true);
+        
+        greenLED.setHubPort(4);
+        greenLED.setIsHubPortDevice(true);
+        
+        redLED.open(1000);
+        greenLED.open(1000);
         temperatureSensor.open(1000);
         
-        Set<Phidget> Devices = Set.of(humiditySensor, temperatureSensor);
+        Set<Phidget> Devices = Set.of(redLED, greenLED, temperatureSensor);
 
         //Use your Phidgets 
         
@@ -62,33 +73,22 @@ public class HotOrCold {
 	    	
 	    	double Temp = temperatureSensor.getTemperature();
 	    	
-	    	double Humidity = humiditySensor.getHumidity();
+	    	System.out.println(Temp + " °C" );
 	    	
-	    	if (Temp > 21) {
+	    	if (Temp >= 20 && Temp <= 24) {
 	    		
-	            System.out.println(Temp + " °C" );
+	            greenLED.setState(true);
+	            
+	            redLED.setState(false);
 	    		
 	    	} else {
 	    		
-	            System.out.println("Room is too cold.");
+	            greenLED.setState(false);
+	            
+	            redLED.setState(true);
 	            
 	    	}
-	    	
-	    	if (Humidity > 30) {
-	    		
-	            System.out.println(Humidity + " %RH");
-	    		
-	    	} else {
-	    		
-	            System.out.println("Humidity is low.");
-	            
-	    	}
-        	
 
-            
-
-            
-            
             Thread.sleep(150);
             
         }

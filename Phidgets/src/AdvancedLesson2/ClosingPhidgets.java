@@ -32,7 +32,7 @@ public class ClosingPhidgets {
         	
         } catch (PhidgetException e) {
         	
-        	System.out.println("Device not available");
+        	e.printStackTrace();
         	
         }
         
@@ -45,7 +45,7 @@ public class ClosingPhidgets {
         	
         } catch (PhidgetException e) {
         	
-        	System.out.println("Cannot Operate after deactivation");
+        	e.printStackTrace();
         	
         }
         

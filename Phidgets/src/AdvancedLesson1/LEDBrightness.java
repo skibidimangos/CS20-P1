@@ -25,6 +25,8 @@ public class LEDBrightness {
 
         //Use your Phidgets with Duty Cycle 
         
+        double Brightness = 0;
+        
         while (true) {
         	
 	    	if (reader.ready()) {
@@ -37,16 +39,33 @@ public class LEDBrightness {
 	    		
 	    	}
         	
-	        redLED.setDutyCycle(0.5);
+	        for (;Brightness < 1;) {
+	        	
+	        	Brightness = Math.min(Brightness + 0.01, 1.0);
+	        	
+	            redLED.setDutyCycle(Brightness);
+	        	
+	        	Thread.sleep(10);
+	        	
+	        }
+	        
 	        Thread.sleep(1000);
-	        redLED.setDutyCycle(1);
-	        Thread.sleep(1000);
-	        redLED.setDutyCycle(0);
+	        
+	        for (;Brightness > 0;) {
+	        	
+	        	Brightness = Math.max(Brightness - 0.01, 0);
+	        	
+	        	redLED.setDutyCycle(Brightness);
+	        	
+	        	Thread.sleep(10);
+	        	
+	        }
+	        
 	        Thread.sleep(1000);
 	        
         }
         
-        redLED.setState(false);
+
         
         redLED.close();
         
