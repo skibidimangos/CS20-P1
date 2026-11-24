@@ -2,14 +2,15 @@ package AdvancedLesson8;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
 
 import com.phidget22.*;
 
 public class MultipleSmartPhidgets { // Compared to lesson 5, the output is no longer at a constant pace but when the value/state changes.
 	  								// This also means that the output will never repeat the same value over and over again like before.
 	
-	public static void DeactivateDevices(Set<Phidget> Devices) throws Exception {
+	public static void DeactivateDevices(List<Phidget> Devices) throws Exception {
 		
 		for (Phidget Device: Devices) {
 			
@@ -40,10 +41,31 @@ public class MultipleSmartPhidgets { // Compared to lesson 5, the output is no l
         TemperatureSensor tSensor1 = new TemperatureSensor();
         TemperatureSensor tSensor2 = new TemperatureSensor();
         
+        
+        
         DigitalInput redButton = new DigitalInput();
         DigitalInput greenButton = new DigitalInput();
         
-        Set<Phidget> Devices = Set.of(tSensor1, tSensor2, redButton, greenButton);
+        List<Phidget> Devices = Arrays.asList(tSensor1, tSensor2, redButton, greenButton);
+        
+         //Address 
+        
+        redButton.setHubPort(0);
+        redButton.setIsHubPortDevice(true);
+        greenButton.setHubPort(5);
+        greenButton.setIsHubPortDevice(true);
+        
+        tSensor1.setHubPort(3);
+        tSensor2.setHubPort(2);
+
+        //Open 
+        
+        redButton.open(1000);
+        
+        greenButton.open(1000);
+        
+        tSensor1.open(1000);
+        tSensor2.open(1000);
         
         greenButton.addStateChangeListener(new DigitalInputStateChangeListener() {
             public void onStateChange(DigitalInputStateChangeEvent e) {
@@ -54,7 +76,7 @@ public class MultipleSmartPhidgets { // Compared to lesson 5, the output is no l
 	            	
 	            	try {
 	            		
-						System.out.println("Temperature: " + tSensor1.getTemperature() + "°C");
+						System.out.println("First Sensor: " + tSensor1.getTemperature() + "°C");
 						
 					} catch (PhidgetException e1) {
 
@@ -75,7 +97,7 @@ public class MultipleSmartPhidgets { // Compared to lesson 5, the output is no l
 	            	
 	            	try {
 	            		
-						System.out.println("Temperature: " + tSensor2.getTemperature() + "°C");
+						System.out.println("Second Sensor: " + tSensor2.getTemperature() + "°C");
 						
 					} catch (PhidgetException e1) {
 
@@ -86,25 +108,6 @@ public class MultipleSmartPhidgets { // Compared to lesson 5, the output is no l
             	}
             }
         });
-        
-         //Address 
-        
-        redButton.setHubPort(0);
-        redButton.setIsHubPortDevice(true);
-        greenButton.setHubPort(5);
-        greenButton.setIsHubPortDevice(true);
-        
-        tSensor1.setHubPort(3);
-        tSensor2.setHubPort(2);
-
-        //Open 
-        
-        redButton.open(1000);
-        
-        greenButton.open(1000);
-        
-        tSensor1.open(1000);
-        tSensor2.open(1000);
 
         //Use your Phidgets 
         while (true) {
